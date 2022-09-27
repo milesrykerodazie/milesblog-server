@@ -167,7 +167,6 @@ export const loginUser = async (
 
 export const refreshToken = async (req: Request, res: Response) => {
    const cookies = req.cookies;
-   console.log('The cookies: => ', cookies.astkn);
 
    if (!cookies?.astkn)
       return res.status(401).json({ success: false, message: 'Unauthorized' });
