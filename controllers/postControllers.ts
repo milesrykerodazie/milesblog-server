@@ -68,6 +68,7 @@ export const createPost = async (
               postSlug,
               likes,
               comments,
+              tags,
               featured,
               suspended,
            }
@@ -210,4 +211,87 @@ export const deletePost = async (
 };
 
 //get post by post slug
-export const getPostBySlug = async (req: Request, res: Response) => {};
+export const getPostBySlug = async (req: Request, res: Response) => {
+   const { postSlug } = req.body;
+
+   // get post by slug
+   const post = await Post.findOne({ postSlug })
+      .collation({ locale: 'en', strength: 2 })
+      .lean();
+
+   if (!post) {
+      return res.status(404).json({
+         success: false,
+         message: 'Post not found.',
+      });
+   } else {
+      return res.status(200).json({
+         success: true,
+         message: 'Post Fetched.',
+         post,
+      });
+   }
+};
+
+//get post by post id
+export const getPostById = async (req: Request, res: Response) => {
+   const { id } = req.body;
+
+   // get post by slug
+   const post = await Post.findById(id).lean();
+
+   if (!post) {
+      return res.status(404).json({
+         success: false,
+         message: 'Post not found.',
+      });
+   } else {
+      return res.status(200).json({
+         success: true,
+         message: 'Post Fetched.',
+         post,
+      });
+   }
+};
+
+//get post by post category
+export const getPostByCategory = async (req: Request, res: Response) => {
+   const { category } = req.body;
+   const posts = await Post.find({ category: category })
+      .collation({ locale: 'en', strength: 2 })
+      .sort({ createdAt: -1 })
+      .lean();
+   if (!posts?.length) {
+      return res.status(404).json({
+         success: false,
+         message: 'No Posts available for now.',
+      });
+   } else {
+      return res.status(200).json({
+         success: true,
+         message: 'Post by category fetched.',
+         posts,
+      });
+   }
+};
+
+//get post by post tags
+export const getPostByTags = async (req: Request, res: Response) => {
+   const { tags } = req.body;
+   const posts = await Post.find({ tags: { $all: tags } })
+      .collation({ locale: 'en', strength: 2 })
+      .sort({ createdAt: -1 })
+      .lean();
+   if (!posts?.length) {
+      return res.status(404).json({
+         success: false,
+         message: 'No Posts available for now.',
+      });
+   } else {
+      return res.status(200).json({
+         success: true,
+         message: 'Post by tags fetched.',
+         posts,
+      });
+   }
+};

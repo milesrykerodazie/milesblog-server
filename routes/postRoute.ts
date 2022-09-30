@@ -8,6 +8,10 @@ import {
    allPosts,
    updatePost,
    deletePost,
+   getPostBySlug,
+   getPostById,
+   getPostByCategory,
+   getPostByTags,
 } from '../controllers/postControllers';
 
 //post routes
@@ -16,5 +20,9 @@ router.get('/posts', allPosts);
 router.post('/new-post', createPost);
 router.patch('/update-post', updatePost);
 router.delete('/delete-post', deletePost);
+router.get('/post-slug', getPostBySlug);
+router.get('/post', getPostById);
+router.get('/post-category', getPostByCategory);
+router.get('/post-tags', getPostByTags);
 
 export default router;
