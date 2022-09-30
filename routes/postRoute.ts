@@ -12,6 +12,7 @@ import {
    getPostById,
    getPostByCategory,
    getPostByTags,
+   likeAndDislikePost,
 } from '../controllers/postControllers';
 
 //post routes
@@ -24,5 +25,6 @@ router.get('/post-slug', getPostBySlug);
 router.get('/post', getPostById);
 router.get('/post-category', getPostByCategory);
 router.get('/post-tags', getPostByTags);
+router.put('/like-post', likeAndDislikePost);
 
 export default router;

@@ -295,3 +295,44 @@ export const getPostByTags = async (req: Request, res: Response) => {
       });
    }
 };
+
+//like a post
+export const likeAndDislikePost = async (req: Request, res: Response) => {
+   const { userId, id } = req.body;
+
+   const post = await Post.findById(id).exec();
+   const user = await User.findById(userId).exec();
+
+   if (!post) {
+      return res.status(404).json({
+         success: false,
+         message: 'Post not found.',
+      });
+   }
+   if (!user) {
+      return res.status(404).json({
+         success: false,
+         message: 'User not found.',
+      });
+   }
+   //@ts-expect-error
+   if (!post?.likes?.includes(userId)) {
+      const newLike = await post.updateOne({
+         $push: { likes: userId },
+      });
+
+      return res.status(201).json({
+         success: true,
+         message: 'You liked this post.',
+      });
+   } else {
+      const unLike = await post.updateOne({
+         $pull: { likes: userId },
+      });
+
+      return res.status(200).json({
+         success: true,
+         message: 'You unliked this post.',
+      });
+   }
+};
