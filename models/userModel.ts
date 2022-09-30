@@ -1,4 +1,3 @@
-import { NextFunction } from 'express';
 import mongoose, { Schema } from 'mongoose';
 import { UserTypes } from '../typescriptInterfaces';
 import bcrypt from 'bcryptjs';

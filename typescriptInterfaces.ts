@@ -29,3 +29,19 @@ export interface ResetPasswordTypes {
    createdAt: Date;
    compareToken(token: string): Promise<boolean>;
 }
+
+export interface IPost extends Document {
+   postOwner: mongoose.Schema.Types.ObjectId;
+   role: string;
+   title: string;
+   post: string;
+   postImage: string;
+   postSlug: string;
+   comments?: [];
+   tags: [];
+   category: string;
+   featured: boolean;
+   suspended: boolean;
+   createdAt: Date;
+   updatedAt: Date;
+}

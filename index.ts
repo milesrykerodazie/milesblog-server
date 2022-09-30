@@ -10,12 +10,13 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { corsOptions } from './config/corsOptions';
 import helmet from 'helmet';
+import morgan from 'morgan';
 
 //routes import
 import rootRoute from './routes/root';
 import authRoute from './routes/authRoute';
 import usersRoute from './routes/usersRoute';
-import morgan from 'morgan';
+import postRoute from './routes/postRoute';
 
 //port
 const PORT: number = Number(process.env.PORT) || 9000;
@@ -36,6 +37,7 @@ app.use('/', express.static(path.join(__dirname, '/public')));
 app.use('/', rootRoute);
 app.use('/milesapi', authRoute);
 app.use('/milesapi', usersRoute);
+app.use('/milesapi', postRoute);
 
 //if user goes to a non existing route
 app.all('*', (req: Request, res: Response) => {
