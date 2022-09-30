@@ -46,3 +46,25 @@ export interface IPost extends Document {
    createdAt: Date;
    updatedAt: Date;
 }
+
+export interface Icomment extends Document {
+   postId: string;
+   commentOwner: string;
+   comment: string;
+   replies: [];
+   likes: [];
+}
+export interface IReply extends Document {
+   commentId: string;
+   replyOwner: string;
+   reply: string;
+   replies: [];
+   likes: [];
+}
+export interface IReply_ extends Document {
+   replyId: string;
+   replyOwner: string;
+   reply: string;
+   replies: [];
+   likes: [];
+}
