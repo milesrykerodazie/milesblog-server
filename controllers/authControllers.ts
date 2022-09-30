@@ -134,7 +134,7 @@ export const loginUser = async (
    const accessToken = jwt.sign(
       {
          UserCred: {
-            roles: userFound.roles,
+            roles: userFound.role,
             username: userFound.username,
          },
       },
@@ -188,7 +188,7 @@ export const refreshToken = async (req: Request, res: Response) => {
       const accessToken = jwt.sign(
          {
             UserCred: {
-               roles: userFound.roles,
+               roles: userFound.role,
                username: userFound.username,
             },
          },

@@ -4,8 +4,7 @@ import { IPost } from '../typescriptInterfaces';
 const PostSchema: Schema = new Schema(
    {
       postOwner: {
-         type: mongoose.Schema.Types.ObjectId,
-         ref: 'User',
+         type: String,
          required: true,
       },
       role: {
@@ -28,6 +27,10 @@ const PostSchema: Schema = new Schema(
       postSlug: {
          type: String,
          required: true,
+      },
+      likes: {
+         type: Array,
+         default: [],
       },
       comments: {
          type: Array,

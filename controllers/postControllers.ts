@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Post from '../models/postModel';
+import User from '../models/userModel';
 
 //testing
 export const postAll = async (req: Request, res: Response) => {
@@ -20,6 +21,7 @@ export const createPost = async (
       post,
       postImage,
       postSlug,
+      likes,
       comments,
       tags,
       category,
@@ -34,8 +36,20 @@ export const createPost = async (
       });
    }
 
+   const user = await User.findById(postOwner).lean();
+
+   if (user?.role !== 'Admin') {
+      return res.status(401).json({
+         success: false,
+         message: 'You are not authorized to create a post.',
+      });
+   }
+
    //check for duplicate titles
-   const duplicateSlug = await Post.findOne({ postSlug }).lean().exec();
+   const duplicateSlug = await Post.findOne({ postSlug })
+      .collation({ locale: 'en', strength: 2 })
+      .lean()
+      .exec();
    if (duplicateSlug) {
       return res.status(409).json({
          success: false,
@@ -52,6 +66,7 @@ export const createPost = async (
               post,
               postImage,
               postSlug,
+              likes,
               comments,
               featured,
               suspended,
@@ -63,6 +78,7 @@ export const createPost = async (
               post,
               postImage,
               postSlug,
+              likes,
               comments,
               tags,
               category,
@@ -84,3 +100,114 @@ export const createPost = async (
       });
    }
 };
+
+//get all posts
+export const allPosts = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
+   const posts = await Post.find().sort({ createdAt: -1 }).lean();
+   if (posts?.length === 0) {
+      return res.status(404).json({
+         success: false,
+         message: 'No Posts at the moment.',
+      });
+   }
+   //getting the total count of the posts
+   const postsCount = posts?.length;
+
+   if (posts) {
+      return res.status(200).json({
+         success: true,
+         message: 'Posts fetched successfully.',
+         posts,
+         postsCount,
+      });
+   }
+};
+
+//update a post
+export const updatePost = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
+   const foundPost = await Post.findById(req.body.id).exec();
+
+   if (!foundPost) {
+      return res.status(404).json({
+         success: false,
+         message: 'Post not found.',
+      });
+   }
+
+   const user = await User.findById(req.body.postOwner).lean();
+
+   if (!user) {
+      return res.status(404).json({
+         success: false,
+         message: 'User not found.',
+      });
+   }
+
+   //check for duplicate post slug
+   const duplicatePostSlug = await Post.findOne({ postSlug: req.body.postSlug })
+      .collation({ locale: 'en', strength: 2 })
+      .lean()
+      .exec();
+
+   //allow remaining of the post slug
+   if (duplicatePostSlug && duplicatePostSlug?._id.toString() !== req.body.id) {
+      return res.status(409).json({
+         success: false,
+         message: 'Duplicate post slug.',
+      });
+   }
+
+   if (foundPost?.postOwner === req.body.postOwner) {
+      const updatedPost = await foundPost.updateOne(
+         { $set: req.body },
+         { new: true },
+      );
+      res.status(201).json({
+         success: true,
+         message: 'Post updated successfully.',
+         post: updatedPost,
+      });
+   } else {
+      res.status(401).json({
+         success: false,
+         message: 'You are not authorized to update this post.',
+      });
+   }
+};
+//delete a post
+export const deletePost = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
+   const { id, postOwner } = req.body;
+   const foundPost = await Post.findById(id).exec();
+
+   if (!foundPost) {
+      return res.status(404).json({
+         success: false,
+         message: 'Post not found.',
+      });
+   }
+
+   if (foundPost?.postOwner === postOwner) {
+      await Post.deleteOne();
+      res.status(200).json({
+         success: true,
+         message: 'Post deleted.',
+      });
+   } else {
+      res.status(400).json({
+         success: false,
+         message: 'You are not authorized to delete this post.',
+      });
+   }
+};
+
+//get post by post slug
+export const getPostBySlug = async (req: Request, res: Response) => {};

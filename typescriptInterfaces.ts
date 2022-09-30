@@ -6,7 +6,7 @@ export interface UserTypes extends Document {
    username: string;
    email: string;
    password: string;
-   roles: string;
+   role: string;
    profilePicture: string;
    userBio: string;
    verified: boolean;
@@ -31,12 +31,13 @@ export interface ResetPasswordTypes {
 }
 
 export interface IPost extends Document {
-   postOwner: mongoose.Schema.Types.ObjectId;
+   postOwner: string;
    role: string;
    title: string;
    post: string;
    postImage: string;
    postSlug: string;
+   likes: [];
    comments?: [];
    tags: [];
    category: string;
