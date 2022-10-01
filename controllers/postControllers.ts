@@ -202,7 +202,10 @@ export const deletePost = async (
 };
 
 //get post by post slug
-export const getPostBySlug = async (req: Request, res: Response) => {
+export const getPostBySlug = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
    const { postSlug } = req.body;
 
    // get post by slug
@@ -225,7 +228,10 @@ export const getPostBySlug = async (req: Request, res: Response) => {
 };
 
 //get post by post id
-export const getPostById = async (req: Request, res: Response) => {
+export const getPostById = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
    const { id } = req.body;
 
    // get post by slug
@@ -246,7 +252,10 @@ export const getPostById = async (req: Request, res: Response) => {
 };
 
 //get post by post category
-export const getPostByCategory = async (req: Request, res: Response) => {
+export const getPostByCategory = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
    const { category } = req.body;
    const posts = await Post.find({ category: category })
       .collation({ locale: 'en', strength: 2 })
@@ -267,7 +276,10 @@ export const getPostByCategory = async (req: Request, res: Response) => {
 };
 
 //get post by post tags
-export const getPostByTags = async (req: Request, res: Response) => {
+export const getPostByTags = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
    const { tags } = req.body;
    const posts = await Post.find({ tags: { $all: tags } })
       .collation({ locale: 'en', strength: 2 })
@@ -288,7 +300,10 @@ export const getPostByTags = async (req: Request, res: Response) => {
 };
 
 //like a post
-export const likeAndDislikePost = async (req: Request, res: Response) => {
+export const likeAndDislikePost = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
    const { userId, id } = req.body;
 
    const post = await Post.findById(id).exec();

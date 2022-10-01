@@ -244,3 +244,47 @@ export const deleteComment = async (
       });
    }
 };
+
+//like comment
+export const likeAndUnlikeComment = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
+   const { userId, id } = req.body;
+
+   const comment = await Comment.findById(id).exec();
+   if (!comment) {
+      return res.status(404).json({
+         success: false,
+         message: 'Comment not found.',
+      });
+   }
+   const user = await User.findById(userId).exec();
+   if (!user) {
+      return res.status(404).json({
+         success: false,
+         message: 'User not found.',
+      });
+   }
+
+   //@ts-expect-error
+   if (!comment?.likes?.includes(userId)) {
+      const newLike = await comment.updateOne({
+         $push: { likes: userId },
+      });
+
+      return res.status(201).json({
+         success: true,
+         message: 'You liked this comment.',
+      });
+   } else {
+      const unLike = await comment.updateOne({
+         $pull: { likes: userId },
+      });
+
+      return res.status(200).json({
+         success: true,
+         message: 'You unliked this comment.',
+      });
+   }
+};
