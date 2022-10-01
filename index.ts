@@ -17,6 +17,7 @@ import rootRoute from './routes/root';
 import authRoute from './routes/authRoute';
 import usersRoute from './routes/usersRoute';
 import postRoute from './routes/postRoute';
+import commentRoute from './routes/commentRoute';
 
 //port
 const PORT: number = Number(process.env.PORT) || 9000;
@@ -38,6 +39,7 @@ app.use('/', rootRoute);
 app.use('/milesapi', authRoute);
 app.use('/milesapi', usersRoute);
 app.use('/milesapi', postRoute);
+app.use('/milesapi', commentRoute);
 
 //if user goes to a non existing route
 app.all('*', (req: Request, res: Response) => {

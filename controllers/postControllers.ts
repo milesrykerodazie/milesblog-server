@@ -141,15 +141,6 @@ export const updatePost = async (
       });
    }
 
-   const user = await User.findById(req.body.postOwner).lean();
-
-   if (!user) {
-      return res.status(404).json({
-         success: false,
-         message: 'User not found.',
-      });
-   }
-
    //check for duplicate post slug
    const duplicatePostSlug = await Post.findOne({ postSlug: req.body.postSlug })
       .collation({ locale: 'en', strength: 2 })
@@ -238,7 +229,7 @@ export const getPostById = async (req: Request, res: Response) => {
    const { id } = req.body;
 
    // get post by slug
-   const post = await Post.findById(id).lean();
+   const post = await Post.findById(id).exec();
 
    if (!post) {
       return res.status(404).json({
