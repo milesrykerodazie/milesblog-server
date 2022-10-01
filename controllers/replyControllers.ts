@@ -1,79 +1,31 @@
 import { Request, Response } from 'express';
 import Comment from '../models/commentModel';
-import Post from '../models/postModel';
+import Reply from '../models/replyModel';
 import User from '../models/userModel';
 
-//post a comment
-export const postComment = async (
+//reply comment
+export const postReply = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const { postId, commentOwner, comment, replies, likes } = req.body;
+   const { commentId, replyOwner, reply, replies, likes } = req.body;
 
-   if (!comment || !postId || !commentOwner) {
+   if (!reply || !commentId || !replyOwner) {
       return res.status(400).json({
          success: false,
          message: 'Fill in the required fields.',
       });
    }
-   //cheking if post exists
-   const post = await Post.findById(postId).exec();
-   const user = await User.findById(commentOwner).exec();
 
-   if (!post) {
-      return res.status(404).json({
-         success: false,
-         message: 'Post not found.',
-      });
-   }
-
-   if (!user) {
-      return res.status(404).json({
-         success: false,
-         message: 'User not found.',
-      });
-   }
-
-   const commentObject = {
-      postId,
-      commentOwner,
-      comment: comment.trim(),
-      replies,
-      likes,
-   };
-
-   const newComment = await Comment.create(commentObject);
-
-   if (newComment) {
-      await post.updateOne({
-         $push: { comments: newComment?._id },
-      });
-      res.status(201).json({
-         success: true,
-         message: 'Comment sent.',
-         comment: newComment,
-      });
-      return;
-   } else {
-      return res.status(400).json({
-         success: false,
-         message: 'Comment not sent.',
-      });
-   }
-};
-//edit comment
-export const updateComment = async (
-   req: Request,
-   res: Response,
-): Promise<Response | void> => {
-   const comment = await Comment.findById(req.body.id).exec();
+   //cheking if comment exists
+   const comment = await Comment.findById(commentId).exec();
    if (!comment) {
       return res.status(404).json({
          success: false,
          message: 'Comment not found.',
       });
    }
-   const user = await User.findById(req.body.commentOwner).exec();
+   const user = await User.findById(replyOwner).exec();
    if (!user) {
       return res.status(404).json({
          success: false,
@@ -81,86 +33,132 @@ export const updateComment = async (
       });
    }
 
-   if (comment?.commentOwner === req.body.commentOwner) {
-      const updatedComment = await comment.updateOne(
+   const replyObject = {
+      commentId,
+      replyOwner,
+      reply: reply.trim(),
+      replies,
+      likes,
+   };
+
+   const newReply = await Reply.create(replyObject);
+
+   if (newReply) {
+      await comment.updateOne({
+         $push: { replies: newReply?._id },
+      });
+      res.status(201).json({
+         success: true,
+         message: 'Reply sent.',
+         reply: newReply,
+      });
+      return;
+   } else {
+      return res.status(400).json({
+         success: false,
+         message: 'Reply not sent.',
+      });
+   }
+};
+//edit reply
+export const updateReply = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
+   const reply = await Reply.findById(req.body.id).exec();
+   if (!reply) {
+      return res.status(404).json({
+         success: false,
+         message: 'Reply not found.',
+      });
+   }
+   const user = await User.findById(req.body.replyOwner).exec();
+   if (!user) {
+      return res.status(404).json({
+         success: false,
+         message: 'User not found.',
+      });
+   }
+
+   if (reply?.replyOwner === req.body.replyOwner) {
+      const updatedReply = await reply.updateOne(
          { $set: req.body },
          { new: true },
       );
       res.status(201).json({
          success: true,
-         message: 'Comment updated.',
+         message: 'Reply updated.',
       });
    } else {
       res.status(401).json({
          success: false,
-         message: 'You are not authorized to update this comment.',
+         message: 'You are not authorized to update this reply.',
       });
    }
 };
-//get all comments
-export const getAllComments = async (
+//get all replies
+export const getAllReplies = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const comments = await Comment.find().sort({ createdAt: -1 }).lean();
-   if (comments?.length === 0) {
+   const replies = await Reply.find().sort({ createdAt: -1 }).lean();
+   if (replies?.length === 0) {
       return res.status(404).json({
          success: false,
-         message: 'No Comments at the moment.',
+         message: 'No replies at the moment.',
       });
    }
    //getting the total count of the posts
-   const commentsCount = comments?.length;
+   const repliesCount = replies?.length;
 
-   if (comments) {
+   if (replies) {
       return res.status(200).json({
          success: true,
-         message: 'Posts fetched successfully.',
-         comments,
-         commentsCount,
+         message: 'Replies fetched successfully.',
+         replies,
+         repliesCount,
       });
    }
 };
-//get all comments of a post
-export const getAllPostComments = async (
+//get all replies of a comment
+export const getCommentReplies = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const { postId } = req.body;
+   const { commentId } = req.body;
 
-   const post = await Post.findById(postId).exec();
-   if (!post) {
+   const comment = await Comment.findById(commentId).exec();
+   if (!comment) {
       return res.status(404).json({
          success: false,
-         message: 'Post not found.',
+         message: 'Comment not found.',
       });
    }
    //get the comments of a post
-   const comments = await Comment.find({ postId: postId })
+   const replies = await Reply.find({ commentId: commentId })
       .sort({ createdAt: -1 })
       .lean();
 
-   if (!comments?.length) {
+   if (!replies?.length) {
       return res.status(404).json({
          success: false,
-         message: 'No comments available for now.',
+         message: 'No replies available for now.',
       });
    }
    //getting the total count of the comments
-   const commentsCount = comments?.length;
+   const repliesCount = replies?.length;
 
-   if (comments) {
+   if (replies) {
       return res.status(200).json({
          success: true,
          message: 'Comments by post fetched.',
-         comments,
-         commentsCount,
+         replies,
+         repliesCount,
       });
    }
 };
-
-//get all comments of a user
-export const getAllUserComments = async (
+//get all replies of a user
+export const getAllUserReplies = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
@@ -174,39 +172,38 @@ export const getAllUserComments = async (
       });
    }
    //get the comments of a post
-   const comments = await Comment.find({ commentOwner: userId })
+   const replies = await Reply.find({ replyOwner: userId })
       .sort({ createdAt: -1 })
       .lean();
 
-   if (!comments?.length) {
+   if (!replies?.length) {
       return res.status(404).json({
          success: false,
-         message: 'No comments available for now.',
+         message: 'No replies available for this user.',
       });
    }
    //getting the total count of the comments
-   const commentsCount = comments?.length;
+   const repliesCount = replies?.length;
 
-   if (comments) {
+   if (replies) {
       return res.status(200).json({
          success: true,
-         message: 'Comments by user fetched.',
-         comments,
-         commentsCount,
+         message: 'Replies by user fetched.',
+         replies,
+         repliesCount,
       });
    }
 };
-
-//delete comment
-export const deleteComment = async (
+//delete reply
+export const deleteReply = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const foundComment = await Comment.findById(req.body.id).exec();
-   if (!foundComment) {
+   const foundReply = await Reply.findById(req.body.id).exec();
+   if (!foundReply) {
       return res.status(404).json({
          success: false,
-         message: 'Comment not found.',
+         message: 'Reply not found.',
       });
    }
    const foundUser = await User.findById(req.body.userId).exec();
@@ -217,46 +214,47 @@ export const deleteComment = async (
          message: 'User not found.',
       });
    }
-   const foundPost = await Post.findById(req.body.postId).exec();
 
-   if (!foundPost) {
+   const foundComment = await Comment.findById(req.body.commentId).exec();
+
+   if (!foundComment) {
       return res.status(404).json({
          success: false,
-         message: 'Post not found.',
+         message: 'Comment not found.',
       });
    }
 
-   if (foundComment?.commentOwner === req.body.userId) {
-      await Comment.findByIdAndRemove(req.body.id);
-      await Post.findByIdAndUpdate(req.body.postId, {
+   if (foundReply?.replyOwner === req.body.userId) {
+      await Reply.findByIdAndRemove(req.body.id);
+      await Comment.findByIdAndUpdate(req.body.commentId, {
          $pull: {
-            comments: foundComment?._id,
+            replies: foundReply?._id,
          },
       });
       return res.status(200).json({
          success: true,
-         message: 'Comment deleted.',
+         message: 'Reply deleted.',
       });
    } else {
       return res.status(401).json({
          success: true,
-         message: 'You are not authorized to delete this comment',
+         message: 'You are not authorized to delete this reply',
       });
    }
 };
 
-//like comment
-export const likeAndUnlikeComment = async (
+//like reply
+export const likeAndUnlikeReply = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
    const { userId, id } = req.body;
 
-   const comment = await Comment.findById(id).exec();
-   if (!comment) {
+   const reply = await Reply.findById(id).exec();
+   if (!reply) {
       return res.status(404).json({
          success: false,
-         message: 'Comment not found.',
+         message: 'Reply not found.',
       });
    }
    const user = await User.findById(userId).exec();
@@ -266,25 +264,24 @@ export const likeAndUnlikeComment = async (
          message: 'User not found.',
       });
    }
-
    //@ts-expect-error
-   if (!comment?.likes?.includes(userId)) {
-      const newLike = await comment.updateOne({
+   if (!reply?.likes?.includes(userId)) {
+      const newLike = await reply.updateOne({
          $push: { likes: userId },
       });
 
       return res.status(201).json({
          success: true,
-         message: 'You liked this comment.',
+         message: 'You liked this reply.',
       });
    } else {
-      const unLike = await comment.updateOne({
+      const unLike = await reply.updateOne({
          $pull: { likes: userId },
       });
 
       return res.status(200).json({
          success: true,
-         message: 'You unliked this comment.',
+         message: 'You unliked this reply.',
       });
    }
 };
