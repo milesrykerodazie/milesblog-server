@@ -28,4 +28,4 @@ const ReplyORSchema: Schema = new Schema(
 );
 
 //export the model
-export default mongoose.model<IReply_>('Comment', ReplyORSchema);
+export default mongoose.model<IReply_>('ReplyOR', ReplyORSchema);
