@@ -11,22 +11,34 @@ const PostSchema: Schema = new Schema(
          type: String,
          required: true,
          default: 'Admin',
+         trim: true,
       },
       title: {
          type: String,
          default: '',
          required: true,
+         trim: true,
       },
       post: {
          type: String,
-      },
-      postImage: {
-         type: String,
          default: '',
+         trim: true,
+      },
+      image: {
+         public_id: {
+            type: String,
+            default: '',
+         },
+         url: {
+            type: String,
+            default: '',
+         },
       },
       postSlug: {
          type: String,
          required: true,
+         lowercase: true,
+         trim: true,
       },
       likes: {
          type: Array,
@@ -44,6 +56,7 @@ const PostSchema: Schema = new Schema(
          type: String,
          default: 'Positive Mindset',
          required: true,
+         trim: true,
       },
       featured: {
          type: Boolean,

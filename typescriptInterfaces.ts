@@ -35,7 +35,10 @@ export interface IPost extends Document {
    role: string;
    title: string;
    post: string;
-   postImage: string;
+   image: {
+      public_id: string;
+      url: string;
+   };
    postSlug: string;
    likes: [];
    comments?: [];

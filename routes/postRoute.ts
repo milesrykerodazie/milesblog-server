@@ -13,12 +13,14 @@ import {
    getPostByCategory,
    getPostByTags,
    likeAndDislikePost,
+   createPostById,
 } from '../controllers/postControllers';
 
 //post routes
 router.get('/postcheck', postAll);
 router.get('/posts', allPosts);
 router.post('/new-post', createPost);
+router.post('/new_post', createPostById);
 router.patch('/update-post', updatePost);
 router.delete('/delete-post', deletePost);
 router.get('/post-slug', getPostBySlug);

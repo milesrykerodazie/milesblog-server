@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import Post from '../models/postModel';
 import User from '../models/userModel';
+import cloudinary from '../utils/cloudinary';
+import slugify from 'slugify';
 
 //testing
 export const postAll = async (req: Request, res: Response) => {
@@ -10,16 +12,13 @@ export const postAll = async (req: Request, res: Response) => {
 };
 
 //creating a post
-export const createPost = async (
-   req: Request,
-   res: Response,
-): Promise<Response | void> => {
+export const createPost = async (req: Request, res: Response) => {
    const {
       postOwner,
       role,
       title,
       post,
-      postImage,
+      image,
       postSlug,
       likes,
       comments,
@@ -29,14 +28,25 @@ export const createPost = async (
       suspended,
    } = req.body;
 
-   if (!postOwner.trim() || !title.trim() || !postSlug) {
+   if (!postOwner || !title) {
       return res.status(400).json({
          success: false,
-         message: 'Please all fields are required.',
+         message: 'Please fill in the required fields.',
       });
    }
 
-   const user = await User.findById(postOwner).lean();
+   //generating the title slug from title
+   const options = {
+      replacement: '-',
+      remove: /[*+~.()'"!:@]/g,
+      lower: true,
+      strict: false,
+      locale: 'en',
+      trim: true,
+   };
+   const slugTitle = slugify(title, options);
+
+   const user = await User.findOne({ username: postOwner }).lean();
 
    if (user?.role !== 'Admin') {
       return res.status(401).json({
@@ -46,9 +56,9 @@ export const createPost = async (
    }
 
    //check for duplicate titles
-   const duplicateSlug = await Post.findOne({ postSlug })
+
+   const duplicateSlug = await Post.findOne({ postSlug: slugTitle })
       .collation({ locale: 'en', strength: 2 })
-      .lean()
       .exec();
    if (duplicateSlug) {
       return res.status(409).json({
@@ -57,48 +67,68 @@ export const createPost = async (
       });
    }
 
-   const postObject =
-      (Array.isArray(tags) || tags?.length) && category !== ''
-         ? {
-              postOwner,
-              role,
-              title,
-              post,
-              postImage,
-              postSlug,
-              likes,
-              comments,
-              tags,
-              featured,
-              suspended,
-           }
-         : {
-              postOwner,
-              role,
-              title,
-              post,
-              postImage,
-              postSlug,
-              likes,
-              comments,
-              tags,
-              category,
-              featured,
-              suspended,
-           };
-
-   const newPost = await Post.create(postObject);
-
-   if (newPost) {
-      res.status(201).json({
-         success: true,
-         message: 'Post created successfully.',
+   if (image) {
+      //sending image to cloudinary
+      const result = await cloudinary.uploader.upload(image, {
+         folder: 'blog_images',
       });
+      console.log('cloud results: => ', result);
+      const newPost = await Post.create({
+         postOwner,
+         role,
+         title,
+         post,
+         image: {
+            public_id: result.public_id,
+            url: result.secure_url,
+         },
+         postSlug: slugTitle,
+         likes,
+         comments,
+         tags,
+         category,
+         featured,
+         suspended,
+      });
+      console.log('new post here: => ', newPost);
+      if (newPost) {
+         res.status(201).json({
+            success: true,
+            message: 'Post created successfully.',
+         });
+      } else {
+         res.status(400).json({
+            success: false,
+            message: 'Post Not created.',
+         });
+      }
    } else {
-      res.status(400).json({
-         success: false,
-         message: 'Post Not created.',
+      const newPost = await Post.create({
+         postOwner,
+         role,
+         title,
+         post,
+         image,
+         postSlug: slugTitle,
+         likes,
+         comments,
+         tags,
+         category,
+         featured,
+         suspended,
       });
+      console.log('new post here: => ', newPost);
+      if (newPost) {
+         res.status(201).json({
+            success: true,
+            message: 'Post created successfully.',
+         });
+      } else {
+         res.status(400).json({
+            success: false,
+            message: 'Post Not created.',
+         });
+      }
    }
 };
 
@@ -340,5 +370,130 @@ export const likeAndDislikePost = async (
          success: true,
          message: 'You unliked this post.',
       });
+   }
+};
+
+//creating a post by username
+export const createPostById = async (req: Request, res: Response) => {
+   const {
+      postOwner,
+      role,
+      title,
+      post,
+      image,
+      postSlug,
+      likes,
+      comments,
+      tags,
+      category,
+      featured,
+      suspended,
+   } = req.body;
+
+   if (!postOwner || !title) {
+      return res.status(400).json({
+         success: false,
+         message: 'Please all fields are required.',
+      });
+   }
+
+   const user = await User.findById(postOwner).exec();
+
+   const options = {
+      replacement: '-',
+      remove: /[*+~.()'"!:@]/g,
+      lower: true,
+      strict: false,
+      locale: 'en',
+      trim: true,
+   };
+
+   const slugTitle = slugify(title, options);
+
+   console.log('slugged title: => ', slugTitle);
+
+   console.log('username user: =>', user);
+
+   if (user?.role !== 'Admin') {
+      return res.status(401).json({
+         success: false,
+         message: 'You are not authorized to create a post.',
+      });
+   }
+
+   //check for duplicate titles
+
+   const duplicateSlug = await Post.findOne({ postSlug: slugTitle })
+      .collation({ locale: 'en', strength: 2 })
+      .exec();
+   if (duplicateSlug) {
+      return res.status(409).json({
+         success: false,
+         message: 'Post already exists!',
+      });
+   }
+
+   if (image) {
+      //sending image to cloudinary
+      const result = await cloudinary.uploader.upload(image, {
+         folder: 'blog_images',
+      });
+      console.log('cloud results: => ', result);
+      const newPost = await Post.create({
+         postOwner,
+         role,
+         title,
+         post,
+         image: {
+            public_id: result.public_id,
+            url: result.secure_url,
+         },
+         postSlug: slugTitle,
+         likes,
+         comments,
+         tags,
+         category,
+         featured,
+         suspended,
+      });
+      console.log('new post here: => ', newPost);
+      if (newPost) {
+         res.status(201).json({
+            success: true,
+            message: 'Post created successfully.',
+         });
+      } else {
+         res.status(400).json({
+            success: false,
+            message: 'Post Not created.',
+         });
+      }
+   } else {
+      const newPost = await Post.create({
+         postOwner,
+         role,
+         title,
+         post,
+         image,
+         postSlug: slugTitle,
+         likes,
+         comments,
+         tags,
+         category,
+         featured,
+         suspended,
+      });
+      console.log('new post here: => ', newPost);
+      if (newPost) {
+         res.status(201).json({
+            success: true,
+            message: 'Post created successfully.',
+         });
+      } else {
+         res.status(400).json({
+            success: false,
+            message: 'Post Not created.',
+         });
+      }
    }
 };

@@ -25,11 +25,13 @@ import replyORRoute from './routes/replyORRoute';
 const PORT: number = Number(process.env.PORT) || 9000;
 //logger for errors
 app.use(logger);
-
-app.use(express.json());
+//@ts-expect-error
+app.use(express.json({ limit: '10mb', extended: true }));
 app.use(cors(corsOptions));
 app.use(cookieParser());
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(
+   express.urlencoded({ limit: '10mb', extended: true, parameterLimit: 50000 }),
+);
 app.use(morgan('common'));
 app.use(helmet());
 
