@@ -56,6 +56,7 @@ const PostSchema: Schema = new Schema(
          type: String,
          default: 'Positive Mindset',
          required: true,
+         lowercase: true,
          trim: true,
       },
       featured: {
