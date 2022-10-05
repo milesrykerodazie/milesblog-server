@@ -497,3 +497,31 @@ export const createPostById = async (req: Request, res: Response) => {
       }
    }
 };
+
+//get all posts that are not suspended
+export const allPostsForUsers = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
+   const posts = await Post.find().sort({ createdAt: -1 }).lean();
+   if (posts?.length === 0) {
+      return res.status(404).json({
+         success: false,
+         message: 'No Posts at the moment.',
+      });
+   }
+
+   const unsuspendedPosts = posts.filter((post) => post?.suspended === false);
+
+   //getting the total count of the posts
+   const postsCount = unsuspendedPosts?.length;
+
+   if (unsuspendedPosts) {
+      return res.status(200).json({
+         success: true,
+         message: 'Posts fetched successfully.',
+         posts: unsuspendedPosts,
+         postsCount,
+      });
+   }
+};

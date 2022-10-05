@@ -14,11 +14,13 @@ import {
    getPostByTags,
    likeAndDislikePost,
    createPostById,
+   allPostsForUsers,
 } from '../controllers/postControllers';
 
 //post routes
 router.get('/postcheck', postAll);
-router.get('/posts', allPosts);
+router.get('/admin-posts', allPosts);
+router.get('/posts', allPostsForUsers);
 router.post('/new-post', createPost);
 router.post('/new_post', createPostById);
 router.patch('/update-post', updatePost);
