@@ -12,6 +12,7 @@ import OtpToken from '../models/otpTokenModel';
 import ResetPassword from '../models/resetPasswordTokenModel';
 import jwt from 'jsonwebtoken';
 import { createRandomBytes } from '../utils/helper';
+import cloudinary from '../utils/cloudinary';
 
 const access_secret = process.env.ACCESS_TOKEN_SECRET as string;
 const refresh_secret = process.env.REFRESH_TOKEN_SECRET as string;
@@ -27,8 +28,12 @@ export const registerUser = async (
       email,
       username,
       password,
-   }: { fullName: string; email: string; username: string; password: string } =
-      req.body;
+      profilePicture,
+      userBio,
+      verified,
+      role,
+      active,
+   } = req.body;
 
    //confirm registration data
    if (
@@ -62,43 +67,110 @@ export const registerUser = async (
       });
    }
 
-   const userObject = { fullName, email, username, password };
-
    //generate OTP
    const OTP = generateOTP();
 
-   //finally create the new user on the condition below
-   const user = await User.create(userObject);
-
-   if (user) {
-      // getting and saving the otp generated
-      const newOtpToken = new OtpToken({
-         username: user?.username,
-         otp: OTP,
+   if (profilePicture) {
+      const result = await cloudinary.uploader.upload(profilePicture, {
+         folder: 'blog_users_image',
       });
-
-      newOtpToken.save();
-
-      //sending email
-      mailSending().sendMail({
-         from: process.env.MAIL,
-         to: user?.email,
-         subject: 'Email Verification',
-         html: emailVerificationTemplate(OTP),
+      //finally create the new user on the condition below
+      const user = await User.create({
+         fullName,
+         email,
+         username,
+         password,
+         profilePicture: {
+            public_id: result.public_id,
+            url: result.secure_url,
+         },
+         userBio,
+         verified,
+         role,
+         active,
       });
+      if (user) {
+         // getting and saving the otp generated
+         const newOtpToken = new OtpToken({
+            username: user?.username,
+            otp: OTP,
+         });
 
-      res.status(201).json({
-         success: true,
-         message: `${user.fullName}, registration successful.`,
-      });
+         newOtpToken.save();
 
-      return;
+         //sending email
+         mailSending().sendMail({
+            from: process.env.MAIL,
+            to: user?.email,
+            subject: 'Email Verification',
+            html: emailVerificationTemplate(OTP),
+         });
+
+         res.status(201).json({
+            success: true,
+            message: `${user.fullName}, registration successful.`,
+         });
+
+         return;
+      } else {
+         return res.status(400).json({
+            success: false,
+            message: 'Invalid user data received,user not created!',
+         });
+      }
    } else {
-      return res.status(400).json({
-         success: false,
-         message: 'Invalid user data received,user not created!',
+      //finally create the new user on the condition below
+      const user = await User.create({
+         fullName,
+         email,
+         username,
+         password,
+         profilePicture,
+         userBio,
+         verified,
+         role,
+         active,
       });
+      if (user) {
+         // getting and saving the otp generated
+         const newOtpToken = new OtpToken({
+            username: user?.username,
+            otp: OTP,
+         });
+
+         newOtpToken.save();
+
+         //sending email
+         mailSending().sendMail({
+            from: process.env.MAIL,
+            to: user?.email,
+            subject: 'Email Verification',
+            html: emailVerificationTemplate(OTP),
+         });
+
+         res.status(201).json({
+            success: true,
+            message: `${user.fullName}, registration successful.`,
+         });
+
+         return;
+      } else {
+         return res.status(400).json({
+            success: false,
+            message: 'Invalid user data received,user not created!',
+         });
+      }
    }
+
+   // if(profilePicture){
+   //    //sending image to cloudinary
+   //    const result = await cloudinary.uploader.upload(profilePicture, {
+   //       folder: 'blog_users_image',
+   //    });
+
+   // }else{
+
+   // }
 };
 
 export const loginUser = async (

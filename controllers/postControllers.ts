@@ -71,8 +71,10 @@ export const createPost = async (req: Request, res: Response) => {
       //sending image to cloudinary
       const result = await cloudinary.uploader.upload(image, {
          folder: 'blog_images',
+         width: 1000,
+         crop: 'scale',
       });
-      console.log('cloud results: => ', result);
+
       const newPost = await Post.create({
          postOwner,
          role,
@@ -162,7 +164,20 @@ export const updatePost = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const foundPost = await Post.findById(req.body.id).exec();
+   const {
+      id,
+      postOwner,
+      role,
+      title,
+      post,
+      image,
+      postSlug,
+      tags,
+      category,
+      featured,
+      suspended,
+   } = req.body;
+   const foundPost = await Post.findById(id).exec();
 
    if (!foundPost) {
       return res.status(404).json({
@@ -172,34 +187,94 @@ export const updatePost = async (
    }
 
    //check for duplicate post slug
-   const duplicatePostSlug = await Post.findOne({ postSlug: req.body.postSlug })
+   const duplicatePostSlug = await Post.findOne({ postSlug: postSlug })
       .collation({ locale: 'en', strength: 2 })
       .lean()
       .exec();
 
    //allow remaining of the post slug
-   if (duplicatePostSlug && duplicatePostSlug?._id.toString() !== req.body.id) {
+   if (duplicatePostSlug && duplicatePostSlug?._id.toString() !== id) {
       return res.status(409).json({
          success: false,
          message: 'Duplicate post slug.',
       });
    }
 
-   if (foundPost?.postOwner === req.body.postOwner) {
-      const updatedPost = await foundPost.updateOne(
-         { $set: req.body },
-         { new: true },
-      );
-      res.status(201).json({
-         success: true,
-         message: 'Post updated successfully.',
-         post: updatedPost,
+   if (image !== undefined) {
+      const imageId = foundPost.image.public_id;
+      if (imageId) {
+         await cloudinary.uploader.destroy(imageId);
+      }
+      const newImage = await cloudinary.uploader.upload(image, {
+         folder: 'blog_images',
+         width: 1000,
+         crop: 'scale',
       });
+      const updateObject = {
+         postOwner,
+         role,
+         title,
+         post,
+         image: {
+            public_id: newImage.public_id,
+            url: newImage.secure_url,
+         },
+         postSlug,
+         tags,
+         category,
+         featured,
+         suspended,
+      };
+
+      if (foundPost?.postOwner === postOwner) {
+         const updatedPost = await foundPost.updateOne(
+            { $set: updateObject },
+            { new: true },
+         );
+         res.status(201).json({
+            success: true,
+            message: 'Post updated successfully.',
+            post: updatedPost,
+         });
+      } else {
+         res.status(401).json({
+            success: false,
+            message: 'You are not authorized to update this post.',
+         });
+      }
    } else {
-      res.status(401).json({
-         success: false,
-         message: 'You are not authorized to update this post.',
-      });
+      const updateObject = {
+         postOwner,
+         role,
+         title,
+         post,
+         image: {
+            public_id: foundPost.image.public_id,
+            url: foundPost.image.url,
+         },
+         postSlug,
+         tags,
+         category,
+         featured,
+         suspended,
+      };
+
+      if (foundPost?.postOwner === postOwner) {
+         const updatedPost = await foundPost.updateOne(
+            { $set: updateObject },
+            { new: true },
+         );
+         res.status(201).json({
+            success: true,
+            message: 'Post updated successfully.',
+            post: updatedPost,
+         });
+      } else {
+         res.status(401).json({
+            success: false,
+            message: 'You are not authorized to update this post.',
+         });
+      }
    }
 };
 //delete a post
@@ -503,7 +578,7 @@ export const allPostsForUsers = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const posts = await Post.find().sort({ createdAt: -1 }).lean();
+   const posts = await Post.find().sort({ createdAt: -1 });
    if (posts?.length === 0) {
       return res.status(404).json({
          success: false,
@@ -511,7 +586,13 @@ export const allPostsForUsers = async (
       });
    }
 
-   const unsuspendedPosts = posts.filter((post) => post?.suspended === false);
+   const unsuspendedPosts = posts.filter(
+      (post) => post?.suspended === false && post?.featured === true,
+   );
+
+   // const sorted = unsuspendedPosts.sort(
+   //    (a, b) => Number(b.createdAt) - Number(a.createdAt),
+   // );
 
    //getting the total count of the posts
    const postsCount = unsuspendedPosts?.length;
@@ -521,6 +602,67 @@ export const allPostsForUsers = async (
          success: true,
          message: 'Posts fetched successfully.',
          posts: unsuspendedPosts,
+         postsCount,
+      });
+   }
+};
+
+//get post by post category query
+export const getPostByQueryCategory = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
+   const { category } = req.query;
+   const posts = await Post.find({ category: category })
+      .collation({ locale: 'en', strength: 2 })
+      .sort({ createdAt: -1 })
+      .lean();
+   if (!posts?.length) {
+      return res.status(404).json({
+         success: false,
+         message: 'No Posts available for this category.',
+      });
+   } else {
+      return res.status(200).json({
+         success: true,
+         message: 'Post by category fetched.',
+         posts,
+      });
+   }
+};
+
+//get all posts
+export const allPostsWithUserDetails = async (
+   req: Request,
+   res: Response,
+): Promise<Response | void> => {
+   const posts = await Post.find().sort({ createdAt: -1 }).lean();
+   if (posts?.length === 0) {
+      return res.status(404).json({
+         success: false,
+         message: 'No Posts at the moment.',
+      });
+   }
+
+   console.log('posts: => ', posts);
+
+   const postList = await Promise.all(
+      posts.map((post) => {
+         return User.findOne(
+            { username: (post as any)?.postOwner },
+            { fullName: 1, username: 1, profilePicture: 1 },
+         );
+      }),
+   );
+
+   //getting the total count of the posts
+   const postsCount = postList?.length;
+
+   if (postList) {
+      return res.status(200).json({
+         success: true,
+         message: 'Posts fetched successfully.',
+         posts: postList,
          postsCount,
       });
    }

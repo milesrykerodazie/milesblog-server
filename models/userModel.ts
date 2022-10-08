@@ -23,8 +23,14 @@ const UserSchema: Schema = new Schema(
          required: true,
       },
       profilePicture: {
-         type: String,
-         default: '',
+         public_id: {
+            type: String,
+            default: '',
+         },
+         url: {
+            type: String,
+            default: '',
+         },
       },
       userBio: {
          type: String,

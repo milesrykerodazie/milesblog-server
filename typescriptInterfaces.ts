@@ -7,7 +7,10 @@ export interface UserTypes extends Document {
    email: string;
    password: string;
    role: string;
-   profilePicture: string;
+   profilePicture: {
+      public_id: string;
+      url: string;
+   };
    userBio: string;
    verified: boolean;
    active: boolean;
