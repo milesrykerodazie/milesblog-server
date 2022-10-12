@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Post from '../models/postModel';
 import User from '../models/userModel';
+import Comment from '../models/commentModel';
 import cloudinary from '../utils/cloudinary';
 import slugify from 'slugify';
 
@@ -291,19 +292,32 @@ export const deletePost = async (
          message: 'Post not found.',
       });
    }
-
+   console.log(foundPost?.postOwner, postOwner);
    if (foundPost?.postOwner === postOwner) {
-      await Post.deleteOne();
-      res.status(200).json({
-         success: true,
-         message: 'Post deleted.',
-      });
-   } else {
-      res.status(400).json({
+      return res.status(400).json({
          success: false,
          message: 'You are not authorized to delete this post.',
       });
    }
+
+   const postImg = foundPost?.image?.public_id;
+
+   if (postImg) {
+      await cloudinary.uploader.destroy(postImg);
+   }
+
+   await Promise.all(
+      (foundPost as any)?.comments.map((comment: any) =>
+         Comment.findByIdAndDelete(comment),
+      ),
+   );
+
+   const deletedPost = await Post.findByIdAndDelete(id);
+   res.status(200).json({
+      success: true,
+      message: 'Post deleted.',
+      deletedPost,
+   });
 };
 
 //get post by post slug
@@ -409,10 +423,10 @@ export const likeAndDislikePost = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const { userId, id } = req.body;
+   const { username, id } = req.body;
 
-   const post = await Post.findById(id).exec();
-   const user = await User.findById(userId).exec();
+   const post = await Post.findOne({ postSlug: id }).exec();
+   const user = await User.findOne({ username: username }).exec();
 
    if (!post) {
       return res.status(404).json({
@@ -426,10 +440,9 @@ export const likeAndDislikePost = async (
          message: 'User not found.',
       });
    }
-   //@ts-expect-error
-   if (!post?.likes?.includes(userId)) {
+   if (!(post as any)?.likes?.includes(username)) {
       const newLike = await post.updateOne({
-         $push: { likes: userId },
+         $push: { likes: username },
       });
 
       return res.status(201).json({
@@ -438,7 +451,7 @@ export const likeAndDislikePost = async (
       });
    } else {
       const unLike = await post.updateOne({
-         $pull: { likes: userId },
+         $pull: { likes: username },
       });
 
       return res.status(200).json({
@@ -667,3 +680,58 @@ export const allPostsWithUserDetails = async (
       });
    }
 };
+
+//get post with comments
+export const postWithComments = async (req: Request, res: Response) => {
+   const { id } = req.query;
+   const post = await Post.findById(id);
+   if (!post) {
+      return res.status(404).json({
+         success: false,
+         message: 'Post not found.',
+      });
+   }
+
+   const commentList = await Promise.all(
+      (post as any).comments?.map((comment: any) => {
+         return Comment.findById(comment);
+      }),
+   );
+
+   if (commentList) {
+      const sortedComments = commentList?.sort(
+         (a, b) => b.createdAt - a.createdAt,
+      );
+
+      const commentCount = sortedComments?.length;
+
+      return res.status(200).json({
+         success: true,
+         postComments: sortedComments,
+         commentCount: commentCount,
+      });
+   } else {
+      return res.status(404).json({
+         success: false,
+         message: 'No comments.',
+      });
+   }
+};
+
+// export const getSuiteRooms = async (req, res, next) => {
+//    try {
+//      const suite = await Suite.findById(req.params.id);
+//      if (!suite) {
+//        return next(createError(404, "Suite not found"));
+//      }
+
+//      const roomsList = await Promise.all(
+//        suite.rooms.map((room) => {
+//          return Room.findById(room);
+//        })
+//      );
+//      res.status(200).json(roomsList);
+//    } catch (error) {
+//      next(error);
+//    }
+//  };

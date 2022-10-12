@@ -10,6 +10,7 @@ import {
    getAllUserComments,
    deleteComment,
    likeAndUnlikeComment,
+   commentWithReplies,
 } from '../controllers/commentControllers';
 
 //comment routes
@@ -19,6 +20,7 @@ router.get('/comments', getAllComments);
 router.get('/post-comments', getAllPostComments);
 router.get('/user-comments', getAllUserComments);
 router.delete('/delete-comment', deleteComment);
-router.put('/like-comment', likeAndUnlikeComment);
+router.patch('/like-comment', likeAndUnlikeComment);
+router.get('/comment-replies', commentWithReplies);
 
 export default router;

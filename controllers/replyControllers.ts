@@ -8,7 +8,8 @@ export const postReply = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const { commentId, replyOwner, reply, replies, likes } = req.body;
+   const { commentId, replyOwner, username, userImage, reply, replies, likes } =
+      req.body;
 
    if (!reply || !commentId || !replyOwner) {
       return res.status(400).json({
@@ -36,7 +37,9 @@ export const postReply = async (
    const replyObject = {
       commentId,
       replyOwner,
-      reply: reply.trim(),
+      username: user?.username,
+      userImage: user?.profilePicture?.url,
+      reply,
       replies,
       likes,
    };

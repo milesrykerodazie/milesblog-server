@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Comment from '../models/commentModel';
+import Reply from '../models/replyModel';
 import Post from '../models/postModel';
 import User from '../models/userModel';
 
@@ -8,7 +9,15 @@ export const postComment = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const { postId, commentOwner, comment, replies, likes } = req.body;
+   const {
+      postId,
+      commentOwner,
+      username,
+      userImage,
+      comment,
+      replies,
+      likes,
+   } = req.body;
 
    if (!comment || !postId || !commentOwner) {
       return res.status(400).json({
@@ -18,7 +27,7 @@ export const postComment = async (
    }
    //cheking if post exists
    const post = await Post.findById(postId).exec();
-   const user = await User.findById(commentOwner).exec();
+   const user = await User.findOne({ username: commentOwner }).exec();
 
    if (!post) {
       return res.status(404).json({
@@ -37,7 +46,9 @@ export const postComment = async (
    const commentObject = {
       postId,
       commentOwner,
-      comment: comment.trim(),
+      username: user?.username,
+      userImage: user?.profilePicture?.url,
+      comment,
       replies,
       likes,
    };
@@ -250,7 +261,7 @@ export const likeAndUnlikeComment = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const { userId, id } = req.body;
+   const { username, id } = req.body;
 
    const comment = await Comment.findById(id).exec();
    if (!comment) {
@@ -259,7 +270,7 @@ export const likeAndUnlikeComment = async (
          message: 'Comment not found.',
       });
    }
-   const user = await User.findById(userId).exec();
+   const user = await User.findOne({ username: username }).exec();
    if (!user) {
       return res.status(404).json({
          success: false,
@@ -268,9 +279,9 @@ export const likeAndUnlikeComment = async (
    }
 
    //@ts-expect-error
-   if (!comment?.likes?.includes(userId)) {
+   if (!comment?.likes?.includes(username)) {
       const newLike = await comment.updateOne({
-         $push: { likes: userId },
+         $push: { likes: username },
       });
 
       return res.status(201).json({
@@ -279,12 +290,42 @@ export const likeAndUnlikeComment = async (
       });
    } else {
       const unLike = await comment.updateOne({
-         $pull: { likes: userId },
+         $pull: { likes: username },
       });
 
       return res.status(200).json({
          success: true,
          message: 'You unliked this comment.',
+      });
+   }
+};
+
+//get comment with replies
+export const commentWithReplies = async (req: Request, res: Response) => {
+   const { id } = req.query;
+   const comment = await Comment.findById(id);
+   if (!comment) {
+      return res.status(404).json({
+         success: false,
+         message: 'Comment not found.',
+      });
+   }
+
+   const replyList = await Promise.all(
+      (comment as any).replies?.map((reply: any) => {
+         return Reply.findById(reply);
+      }),
+   );
+
+   if (replyList?.length > 0) {
+      return res.status(200).json({
+         success: true,
+         commentReplies: replyList,
+      });
+   } else {
+      return res.status(200).json({
+         success: false,
+         message: 'No replies.',
       });
    }
 };

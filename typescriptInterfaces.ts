@@ -56,6 +56,8 @@ export interface IPost extends Document {
 export interface Icomment extends Document {
    postId: string;
    commentOwner: string;
+   username?: string;
+   userImage?: string;
    comment: string;
    replies: [];
    likes: [];
@@ -63,6 +65,8 @@ export interface Icomment extends Document {
 export interface IReply extends Document {
    commentId: string;
    replyOwner: string;
+   username?: string;
+   userImage?: string;
    reply: string;
    replies: [];
    likes: [];

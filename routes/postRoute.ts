@@ -17,6 +17,7 @@ import {
    allPostsForUsers,
    getPostByQueryCategory,
    allPostsWithUserDetails,
+   postWithComments,
 } from '../controllers/postControllers';
 
 //post routes
@@ -31,8 +32,9 @@ router.get('/post-slug', getPostBySlug);
 router.get('/post', getPostById);
 router.get('/post-category', getPostByCategory);
 router.get('/post-tags', getPostByTags);
-router.put('/like-post', likeAndDislikePost);
+router.patch('/like-post', likeAndDislikePost);
 router.get('/category-posts', getPostByQueryCategory);
 router.get('/post_owner', allPostsWithUserDetails);
+router.get('/post-comments', postWithComments);
 
 export default router;

@@ -11,6 +11,15 @@ const ReplySchema: Schema = new Schema(
          type: String,
          required: true,
       },
+      username: {
+         type: String,
+         default: '',
+      },
+      userImage: {
+         type: String,
+         default: '',
+      },
+
       reply: {
          type: String,
          required: true,
