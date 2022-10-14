@@ -35,6 +35,6 @@ router.get('/post-tags', getPostByTags);
 router.patch('/like-post', likeAndDislikePost);
 router.get('/category-posts', getPostByQueryCategory);
 router.get('/post_owner', allPostsWithUserDetails);
-router.get('/post-comments', postWithComments);
+router.get('/post-comments/:id', postWithComments);
 
 export default router;

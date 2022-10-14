@@ -683,8 +683,8 @@ export const allPostsWithUserDetails = async (
 
 //get post with comments
 export const postWithComments = async (req: Request, res: Response) => {
-   const { id } = req.query;
-   const post = await Post.findById(id);
+   const { id } = req.params;
+   const post = await Post.findOne({ postSlug: id });
    if (!post) {
       return res.status(404).json({
          success: false,
@@ -717,21 +717,3 @@ export const postWithComments = async (req: Request, res: Response) => {
       });
    }
 };
-
-// export const getSuiteRooms = async (req, res, next) => {
-//    try {
-//      const suite = await Suite.findById(req.params.id);
-//      if (!suite) {
-//        return next(createError(404, "Suite not found"));
-//      }
-
-//      const roomsList = await Promise.all(
-//        suite.rooms.map((room) => {
-//          return Room.findById(room);
-//        })
-//      );
-//      res.status(200).json(roomsList);
-//    } catch (error) {
-//      next(error);
-//    }
-//  };

@@ -84,7 +84,7 @@ export const updateComment = async (
          message: 'Comment not found.',
       });
    }
-   const user = await User.findById(req.body.commentOwner).exec();
+   const user = await User.findOne({ username: req.body.commentOwner }).exec();
    if (!user) {
       return res.status(404).json({
          success: false,
@@ -213,14 +213,17 @@ export const deleteComment = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const foundComment = await Comment.findById(req.body.id).exec();
+   const { id } = req.body;
+   const foundComment = await Comment.findById(id).exec();
    if (!foundComment) {
       return res.status(404).json({
          success: false,
          message: 'Comment not found.',
       });
    }
-   const foundUser = await User.findById(req.body.userId).exec();
+   const foundUser = await User.findOne({
+      username: foundComment?.commentOwner,
+   }).exec();
 
    if (!foundUser) {
       return res.status(404).json({
@@ -228,22 +231,21 @@ export const deleteComment = async (
          message: 'User not found.',
       });
    }
-   const foundPost = await Post.findById(req.body.postId).exec();
 
-   if (!foundPost) {
-      return res.status(404).json({
-         success: false,
-         message: 'Post not found.',
-      });
-   }
-
-   if (foundComment?.commentOwner === req.body.userId) {
-      await Comment.findByIdAndRemove(req.body.id);
-      await Post.findByIdAndUpdate(req.body.postId, {
+   if (foundComment && foundUser) {
+      await Promise.all(
+         foundComment.replies?.map((reply) => {
+            if (reply) {
+               return Reply.findByIdAndDelete(reply);
+            }
+         }),
+      );
+      await Post.findByIdAndUpdate(foundComment?.postId, {
          $pull: {
             comments: foundComment?._id,
          },
       });
+      await Comment.findByIdAndRemove(id);
       return res.status(200).json({
          success: true,
          message: 'Comment deleted.',
@@ -302,7 +304,7 @@ export const likeAndUnlikeComment = async (
 
 //get comment with replies
 export const commentWithReplies = async (req: Request, res: Response) => {
-   const { id } = req.query;
+   const { id } = req.params;
    const comment = await Comment.findById(id);
    if (!comment) {
       return res.status(404).json({
@@ -313,14 +315,19 @@ export const commentWithReplies = async (req: Request, res: Response) => {
 
    const replyList = await Promise.all(
       (comment as any).replies?.map((reply: any) => {
-         return Reply.findById(reply);
+         if (reply) {
+            return Reply.findById(reply);
+         }
       }),
    );
 
-   if (replyList?.length > 0) {
+   if (replyList) {
+      const sortedReplies = replyList?.sort(
+         (a, b) => b.createdAt - a.createdAt,
+      );
       return res.status(200).json({
          success: true,
-         commentReplies: replyList,
+         replies: sortedReplies,
       });
    } else {
       return res.status(200).json({

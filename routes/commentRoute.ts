@@ -21,6 +21,6 @@ router.get('/post-comments', getAllPostComments);
 router.get('/user-comments', getAllUserComments);
 router.delete('/delete-comment', deleteComment);
 router.patch('/like-comment', likeAndUnlikeComment);
-router.get('/comment-replies', commentWithReplies);
+router.get('/comment-replies/:id', commentWithReplies);
 
 export default router;

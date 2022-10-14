@@ -19,6 +19,6 @@ router.get('/replies', getAllReplies);
 router.get('/comment-replies', getCommentReplies);
 router.get('/user-replies', getAllUserReplies);
 router.delete('/delete-reply', deleteReply);
-router.put('/like-reply', likeAndUnlikeReply);
+router.patch('/like-reply', likeAndUnlikeReply);
 
 export default router;

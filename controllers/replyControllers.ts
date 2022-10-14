@@ -26,7 +26,7 @@ export const postReply = async (
          message: 'Comment not found.',
       });
    }
-   const user = await User.findById(replyOwner).exec();
+   const user = await User.findOne({ username: replyOwner }).exec();
    if (!user) {
       return res.status(404).json({
          success: false,
@@ -75,7 +75,7 @@ export const updateReply = async (
          message: 'Reply not found.',
       });
    }
-   const user = await User.findById(req.body.replyOwner).exec();
+   const user = await User.findOne({ username: req.body.replyOwner }).exec();
    if (!user) {
       return res.status(404).json({
          success: false,
@@ -209,7 +209,9 @@ export const deleteReply = async (
          message: 'Reply not found.',
       });
    }
-   const foundUser = await User.findById(req.body.userId).exec();
+   const foundUser = await User.findOne({
+      username: req.body.replyOwner,
+   }).exec();
 
    if (!foundUser) {
       return res.status(404).json({
@@ -227,7 +229,7 @@ export const deleteReply = async (
       });
    }
 
-   if (foundReply?.replyOwner === req.body.userId) {
+   if (foundReply?.replyOwner === req.body.replyOwner) {
       await Reply.findByIdAndRemove(req.body.id);
       await Comment.findByIdAndUpdate(req.body.commentId, {
          $pull: {
@@ -251,7 +253,7 @@ export const likeAndUnlikeReply = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const { userId, id } = req.body;
+   const { username, id } = req.body;
 
    const reply = await Reply.findById(id).exec();
    if (!reply) {
@@ -260,7 +262,7 @@ export const likeAndUnlikeReply = async (
          message: 'Reply not found.',
       });
    }
-   const user = await User.findById(userId).exec();
+   const user = await User.findOne({ username: username }).exec();
    if (!user) {
       return res.status(404).json({
          success: false,
@@ -268,9 +270,9 @@ export const likeAndUnlikeReply = async (
       });
    }
    //@ts-expect-error
-   if (!reply?.likes?.includes(userId)) {
+   if (!reply?.likes?.includes(username)) {
       const newLike = await reply.updateOne({
-         $push: { likes: userId },
+         $push: { likes: username },
       });
 
       return res.status(201).json({
@@ -279,7 +281,7 @@ export const likeAndUnlikeReply = async (
       });
    } else {
       const unLike = await reply.updateOne({
-         $pull: { likes: userId },
+         $pull: { likes: username },
       });
 
       return res.status(200).json({
