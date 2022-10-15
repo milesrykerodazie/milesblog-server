@@ -49,7 +49,7 @@ export const createPost = async (req: Request, res: Response) => {
 
    const user = await User.findOne({ username: postOwner }).lean();
 
-   if (user?.role !== 'Admin') {
+   if (user?.role === '') {
       return res.status(401).json({
          success: false,
          message: 'You are not authorized to create a post.',

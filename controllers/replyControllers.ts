@@ -68,23 +68,30 @@ export const updateReply = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const reply = await Reply.findById(req.body.id).exec();
-   if (!reply) {
+   const foundReply = await Reply.findById(req.body.id).exec();
+   if (!foundReply) {
       return res.status(404).json({
          success: false,
          message: 'Reply not found.',
       });
    }
-   const user = await User.findOne({ username: req.body.replyOwner }).exec();
-   if (!user) {
+   const foundUser = await User.findOne({
+      username: req.body.replyOwner,
+   }).exec();
+   if (!foundUser) {
       return res.status(404).json({
          success: false,
          message: 'User not found.',
       });
    }
 
-   if (reply?.replyOwner === req.body.replyOwner) {
-      const updatedReply = await reply.updateOne(
+   //can update
+   const canUpdate =
+      foundReply?.replyOwner === req.body.replyOwner ||
+      foundUser?.role === 'Admin';
+
+   if (canUpdate) {
+      const updatedReply = await foundReply.updateOne(
          { $set: req.body },
          { new: true },
       );
@@ -202,7 +209,9 @@ export const deleteReply = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const foundReply = await Reply.findById(req.body.id).exec();
+   const { id, replyOwner, commentId } = req.body;
+
+   const foundReply = await Reply.findById(id).exec();
    if (!foundReply) {
       return res.status(404).json({
          success: false,
@@ -210,7 +219,7 @@ export const deleteReply = async (
       });
    }
    const foundUser = await User.findOne({
-      username: req.body.replyOwner,
+      username: replyOwner,
    }).exec();
 
    if (!foundUser) {
@@ -220,7 +229,7 @@ export const deleteReply = async (
       });
    }
 
-   const foundComment = await Comment.findById(req.body.commentId).exec();
+   const foundComment = await Comment.findById(commentId).exec();
 
    if (!foundComment) {
       return res.status(404).json({
@@ -229,7 +238,12 @@ export const deleteReply = async (
       });
    }
 
-   if (foundReply?.replyOwner === req.body.replyOwner) {
+   //can delete
+   const canDelete =
+      foundReply?.replyOwner === req.body.replyOwner ||
+      foundUser?.role === 'Admin';
+
+   if (canDelete) {
       await Reply.findByIdAndRemove(req.body.id);
       await Comment.findByIdAndUpdate(req.body.commentId, {
          $pull: {

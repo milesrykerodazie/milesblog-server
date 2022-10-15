@@ -92,7 +92,11 @@ export const updateComment = async (
       });
    }
 
-   if (comment?.commentOwner === req.body.commentOwner) {
+   //can update
+   const canUpdate =
+      comment?.commentOwner === req.body.commentOwner || user?.role === 'Admin';
+
+   if (canUpdate) {
       const updatedComment = await comment.updateOne(
          { $set: req.body },
          { new: true },
@@ -213,7 +217,7 @@ export const deleteComment = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const { id } = req.body;
+   const { id, commentOwner } = req.body;
    const foundComment = await Comment.findById(id).exec();
    if (!foundComment) {
       return res.status(404).json({
@@ -222,7 +226,7 @@ export const deleteComment = async (
       });
    }
    const foundUser = await User.findOne({
-      username: foundComment?.commentOwner,
+      username: commentOwner,
    }).exec();
 
    if (!foundUser) {
@@ -232,7 +236,12 @@ export const deleteComment = async (
       });
    }
 
-   if (foundComment && foundUser) {
+   //can delete
+   const canDelete =
+      foundComment?.commentOwner === commentOwner ||
+      foundUser?.role === 'Admin';
+
+   if (foundComment && canDelete) {
       await Promise.all(
          foundComment.replies?.map((reply) => {
             if (reply) {
