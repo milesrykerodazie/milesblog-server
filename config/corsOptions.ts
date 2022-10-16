@@ -1,8 +1,7 @@
 import { whiteListOrigins } from './whiteListOrigins';
 
 export const corsOptions = {
-   //@ts-ignore
-   origin: (origin, callback) => {
+   origin: (origin: any, callback: any) => {
       if (whiteListOrigins.indexOf(origin) !== -1 || !origin) {
          callback(null, true);
       } else {
