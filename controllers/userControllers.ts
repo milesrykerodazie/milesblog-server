@@ -43,6 +43,7 @@ export const updateUser = async (
    res: Response,
 ): Promise<Response | void> => {
    const {
+      id,
       fullName,
       email,
       username,
@@ -53,7 +54,7 @@ export const updateUser = async (
       active,
    } = req.body;
 
-   const foundUser = await User.findById(req.params.id).exec();
+   const foundUser = await User.findById(id).exec();
    if (!foundUser) {
       return res.status(404).json({
          success: false,
@@ -66,10 +67,7 @@ export const updateUser = async (
       .lean()
       .exec();
 
-   if (
-      duplicateUsername &&
-      duplicateUsername?._id.toString() !== req.params.id
-   ) {
+   if (duplicateUsername && duplicateUsername?._id.toString() !== id) {
       return res.status(409).json({
          success: false,
          message: 'Sorry, username already exists, use another',
