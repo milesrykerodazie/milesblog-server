@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import User from '../models/userModel';
 import cloudinary from '../utils/cloudinary';
+import Post from '../models/postModel';
+import Reply from '../models/replyModel';
+import Comment from '../models/commentModel';
 
 //get all users
 export const getAllUsers = async (req: Request, res: Response) => {
@@ -147,4 +150,107 @@ export const updateUser = async (
    }
 };
 
-// hello
+//delete user
+export const deleteUser = async (req: Request, res: Response) => {
+   const { id } = req.body;
+
+   const foundUser = await User.findById(id).exec();
+   if (!foundUser) {
+      return res.status(404).json({
+         success: false,
+         message: 'User not found.',
+      });
+   }
+
+   const foundPosts = await Post.find({ postOwner: foundUser?.username });
+   if (!foundPosts) {
+      return res.status(404).json({
+         success: false,
+         message: 'Post not found.',
+      });
+   }
+
+   const foundComments = await Comment.find({
+      commentOwner: foundUser?.username,
+   });
+   if (!foundComments) {
+      return res.status(404).json({
+         success: false,
+         message: 'Comment not found.',
+      });
+   }
+
+   const foundReplies = await Reply.find({ replyOwner: foundUser?.username });
+   if (!foundReplies) {
+      return res.status(404).json({
+         success: false,
+         message: 'Reply not found.',
+      });
+   }
+
+   const userImage = foundUser?.profilePicture?.public_id;
+   if (userImage) {
+      await cloudinary.uploader.destroy(userImage);
+   }
+
+   //delete post
+   await Promise.all(
+      (foundPosts as any)?.map(
+         async (foundPost: any) => (
+            foundPost?.comments?.map((comment: any) =>
+               Comment.findByIdAndDelete(comment),
+            ),
+            await cloudinary.uploader.destroy(foundPost?.image?.public_id),
+            Post.findByIdAndDelete(foundPost?._id)
+         ),
+      ),
+   );
+
+   const allPosts = await Post.find();
+   if (allPosts?.length > 1) {
+      return res.status(404).json({
+         success: false,
+         message: 'No Posts.',
+      });
+   }
+
+   //delete comments
+   await Promise.all(
+      (foundComments as any)?.map(
+         (foundComment: any) => (
+            foundComment?.replies?.map((reply: any) =>
+               Reply.findByIdAndDelete(reply),
+            ),
+            allPosts?.map(async (post) => {
+               if (post && post?.comments) {
+                  const commentIncludes = post?.comments.includes(
+                     //@ts-expect-error
+                     foundComment?._id,
+                  );
+                  if (commentIncludes) {
+                     return await Post.findByIdAndUpdate(post?._id, {
+                        $pull: {
+                           comments: foundComment?._id,
+                        },
+                     });
+                  }
+               }
+            }),
+            Comment.findByIdAndDelete(foundComment?._id)
+         ),
+      ),
+   );
+
+   await Promise.all(
+      (foundReplies as any)?.map((foundReply: any) =>
+         Reply.findByIdAndDelete(foundReply?._id),
+      ),
+   );
+
+   await User.findByIdAndDelete(foundUser?._id);
+
+   res.status(200).json({
+      success: true,
+      message: 'User deleted.',
+   });
+};

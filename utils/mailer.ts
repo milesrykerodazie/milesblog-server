@@ -60,10 +60,10 @@ export const emailVerificationTemplate = (code: string) => {
       font-weight: 600;">Welcome To Miles Blog</h2>
       <div style="padding:5px 35px; margin-top: -30px;">
         <div>
-        <p style="font-size: 22px; color:#3563E9; padding:5px; text-align: center;">We're glad to have you on board.Take your time to purchase any of our reliable products.</p>
-        <p style="font-size: 18px; color:#3563E9; text-align: center; font-weight: 600;">Use this code below to verify your email address. </p>
+        <p style="font-size: 18px; color:#3563E9; padding:5px; text-align: center;">We're glad to have you on board.</p>
+        <p style="font-size: 14px; color:#3563E9; text-align: center; font-weight: 600;">Use this code below to verify your email address. </p>
         <p style="font-weight:600; color:black; letter-spacing: 0.05em; font-size: 25px; text-align: center;">${code}</p>
-        <P style="font-size: 16px; color:#3563E9; text-align: center;">Thank you for choosing Miles Ecommerce.</P>
+        <P style="font-size: 14px; color:#3563E9; text-align: center;">Thank you for choosing Miles Ecommerce.</P>
     </div>
     </div>
     </body>
@@ -106,10 +106,10 @@ export const verificationSuccessTemplate = () => {
       font-weight: 600;">Welcome To Miles Blog Sample</h2>
       <div style="padding:5px 35px; margin-top: -30px;">
         <div>
-        <p style="font-weight: 600; font-size: 22px; color:#3563E9; padding:5px; text-align: center;">Your Email verification was SUCCESSFUL.</p>
+        <p style="font-weight: 600; font-size: 18px; color:#3563E9; padding:5px; text-align: center;">Your Email verification was SUCCESSFUL.</p>
         <div>
-          <p style="font-size: 18px; color:#3563E9; text-align: center; font-weight: 600;">You can now explore <b>Miles Ecommerce</b>. </p>
-          <P style="font-size: 16px; color:#3563E9; text-align: center;">Thank you for choosing Miles Blog Sample.</P>
+          <p style="font-size: 16px; color:#3563E9; text-align: center; font-weight: 600;">You can now explore <b>Miles Blog</b>. </p>
+          <P style="font-size: 14px; color:#3563E9; text-align: center;">Thank you for choosing Miles Blog Sample.</P>
         </div>
         
     </div>
@@ -154,12 +154,12 @@ export const passwordResetTemplate = (link: string) => {
     font-weight: 600;">Welcome To Miles Blog Sample</h2>
     <div style="padding:5px 35px; margin-top: -30px;">
       <div>
-      <p style="font-weight: 600; font-size: 22px; color:#3563E9; padding:5px; text-align: center;">Click the reset button below to reset your password.</p>
+      <p style="font-weight: 600; font-size: 18px; color:#3563E9; padding:5px; text-align: center;">Click the reset button below to reset your password.</p>
       <div>
-        <button style="font-size: 20px; font-weight: 600; width: 100%; border-radius: 5px; outline: none; border: none; padding: 10px 0;">
+        <button style="font-size: 16px; font-weight: 600; width: 100%; border-radius: 5px; outline: none; border: none; padding: 10px 0;">
         <a href="${link}" style="color: #3563E9; letter-spacing: 0.1em;">Reset Password </a>
     </button>
-        <P style="font-size: 16px; color:#3563E9; text-align: center;">Thank you for choosing Miles Blog Sample.</P>
+        <P style="font-size: 14px; color:#3563E9; text-align: center;">Thank you for choosing Miles Blog Sample.</P>
       </div>
       
   </div>
@@ -204,10 +204,10 @@ export const passwordResetSuccessTemplate = () => {
     font-weight: 600;">Welcome To Miles Blog Sample</h2>
     <div style="padding:5px 35px; margin-top: -30px;">
       <div>
-      <p style="font-weight: 600; font-size: 22px; color:#3563E9; padding:5px; text-align: center;">Your password reset was SUCCESSFUL.</p>
+      <p style="font-weight: 600; font-size: 18px; color:#3563E9; padding:5px; text-align: center;">Your password reset was SUCCESSFUL.</p>
       <div>
-        <p style="font-size: 18px; color:#3563E9; text-align: center; font-weight: 600;">You can now login with your new password. </p>
-        <P style="font-size: 16px; color:#3563E9; text-align: center;">Thank you for choosing Miles Blog Sample.</P>
+        <p style="font-size: 16px; color:#3563E9; text-align: center; font-weight: 600;">You can now login with your new password. </p>
+        <P style="font-size: 14px; color:#3563E9; text-align: center;">Thank you for choosing Miles Blog Sample.</P>
       </div>
       
   </div>
