@@ -468,3 +468,60 @@ export const verifyResetToken = async (req: Request, res: Response) => {
       message: 'Valid reset token',
    });
 };
+
+//request verification
+export const requestVerification = async (req: Request, res: Response) => {
+   const { username } = req.body;
+
+   // getting user details from database
+   const user = await User.findOne({ username: username });
+   if (!user) {
+      return res.status(404).json({
+         success: false,
+         message: 'User not found',
+      });
+   }
+
+   if (user.verified === true) {
+      return res.status(409).json({
+         success: false,
+         message: 'User Email has already been verified',
+      });
+   }
+   //checking if the user is already in the verification token database
+   const userCheck = await OtpToken.findOne({
+      username: user.username,
+   });
+
+   if (userCheck) {
+      return res.status(409).json({
+         success: false,
+         message: 'User still has a valid verification token.',
+      });
+   }
+
+   //if user has no verification token
+
+   //generating new verification token
+   const newOtp: any = generateOTP();
+
+   const freshVerificationToken = new OtpToken({
+      username: user.username,
+      otp: newOtp,
+   });
+
+   await freshVerificationToken.save();
+
+   //send a new mail notification
+   mailSending().sendMail({
+      from: process.env.MAIL,
+      to: user.email,
+      subject: 'Email Verification',
+      html: emailVerificationTemplate(newOtp),
+   });
+
+   res.status(200).json({
+      success: true,
+      message: 'Verification sent to mail.',
+   });
+};

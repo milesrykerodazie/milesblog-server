@@ -11,6 +11,7 @@ import {
    forgotPassword,
    resetPassword,
    verifyResetToken,
+   requestVerification,
 } from '../controllers/authControllers';
 
 import { isResetTokenValid } from '../middlewares/resetTokenValidator';
@@ -24,5 +25,6 @@ router.post('/reset-password', isResetTokenValid, resetPassword);
 router.post('/verify-email', verifyUserEmail);
 router.get('/auth-refresh', refreshToken);
 router.get('/reset-link-verification', isResetTokenValid, verifyResetToken);
+router.post('/resend-verification', requestVerification);
 
 export default router;
