@@ -103,13 +103,13 @@ export const verificationSuccessTemplate = () => {
       padding-top: 20px;
       text-align: center;
       font-size: 40px;
-      font-weight: 600;">Welcome To Miles Blog</h2>
+      font-weight: 600;">Welcome To Miles Blog Sample</h2>
       <div style="padding:5px 35px; margin-top: -30px;">
         <div>
         <p style="font-weight: 600; font-size: 22px; color:#3563E9; padding:5px; text-align: center;">Your Email verification was SUCCESSFUL.</p>
         <div>
           <p style="font-size: 18px; color:#3563E9; text-align: center; font-weight: 600;">You can now explore <b>Miles Ecommerce</b>. </p>
-          <P style="font-size: 16px; color:#3563E9; text-align: center;">Thank you for choosing Miles Ecommerce.</P>
+          <P style="font-size: 16px; color:#3563E9; text-align: center;">Thank you for choosing Miles Blog Sample.</P>
         </div>
         
     </div>
@@ -151,7 +151,7 @@ export const passwordResetTemplate = (link: string) => {
     padding-top: 20px;
     text-align: center;
     font-size: 40px;
-    font-weight: 600;">Welcome To Miles Ecommerce</h2>
+    font-weight: 600;">Welcome To Miles Blog Sample</h2>
     <div style="padding:5px 35px; margin-top: -30px;">
       <div>
       <p style="font-weight: 600; font-size: 22px; color:#3563E9; padding:5px; text-align: center;">Click the reset button below to reset your password.</p>
@@ -159,7 +159,7 @@ export const passwordResetTemplate = (link: string) => {
         <button style="font-size: 20px; font-weight: 600; width: 100%; border-radius: 5px; outline: none; border: none; padding: 10px 0;">
         <a href="${link}" style="color: #3563E9; letter-spacing: 0.1em;">Reset Password </a>
     </button>
-        <P style="font-size: 16px; color:#3563E9; text-align: center;">Thank you for choosing Miles Ecommerce.</P>
+        <P style="font-size: 16px; color:#3563E9; text-align: center;">Thank you for choosing Miles Blog Sample.</P>
       </div>
       
   </div>
@@ -201,13 +201,13 @@ export const passwordResetSuccessTemplate = () => {
     padding-top: 20px;
     text-align: center;
     font-size: 40px;
-    font-weight: 600;">Welcome To Miles Ecommerce</h2>
+    font-weight: 600;">Welcome To Miles Blog Sample</h2>
     <div style="padding:5px 35px; margin-top: -30px;">
       <div>
       <p style="font-weight: 600; font-size: 22px; color:#3563E9; padding:5px; text-align: center;">Your password reset was SUCCESSFUL.</p>
       <div>
         <p style="font-size: 18px; color:#3563E9; text-align: center; font-weight: 600;">You can now login with your new password. </p>
-        <P style="font-size: 16px; color:#3563E9; text-align: center;">Thank you for choosing Miles Ecommerce.</P>
+        <P style="font-size: 16px; color:#3563E9; text-align: center;">Thank you for choosing Miles Blog Sample.</P>
       </div>
       
   </div>
