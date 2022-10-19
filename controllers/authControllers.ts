@@ -515,7 +515,7 @@ export const requestVerification = async (req: Request, res: Response) => {
    //send a new mail notification
    mailSending().sendMail({
       from: process.env.MAIL,
-      to: user.email,
+      to: user?.email,
       subject: 'Email Verification',
       html: emailVerificationTemplate(newOtp),
    });
