@@ -232,7 +232,7 @@ export const loginUser = async (
 
    //new access token
    res.json({
-      success: `Access granted to ${userFound?.username}.`,
+      success: `${userFound?.username} logged in`,
       accessToken,
    });
 };
