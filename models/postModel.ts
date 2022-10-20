@@ -50,7 +50,7 @@ const PostSchema: Schema = new Schema(
       },
       tags: {
          type: [String],
-         default: ['all'],
+         default: ['tag1'],
       },
       category: {
          type: String,
