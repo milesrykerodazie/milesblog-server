@@ -60,7 +60,7 @@ export interface Icomment extends Document {
    userImage?: string;
    comment: string;
    replies: [];
-   likes: [];
+   likes?: [];
 }
 export interface IReply extends Document {
    commentId: string;

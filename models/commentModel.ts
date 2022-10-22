@@ -24,7 +24,7 @@ const CommentSchema: Schema = new Schema(
          required: true,
       },
       replies: {
-         type: Array,
+         type: [String],
          default: [],
       },
       likes: {

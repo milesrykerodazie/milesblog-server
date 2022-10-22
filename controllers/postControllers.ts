@@ -4,6 +4,7 @@ import User from '../models/userModel';
 import Comment from '../models/commentModel';
 import cloudinary from '../utils/cloudinary';
 import slugify from 'slugify';
+import mongoose from 'mongoose';
 
 //testing
 export const postAll = async (req: Request, res: Response) => {
@@ -93,7 +94,7 @@ export const createPost = async (req: Request, res: Response) => {
          featured,
          suspended,
       });
-      console.log('new post here: => ', newPost);
+
       if (newPost) {
          res.status(201).json({
             success: true,
@@ -120,7 +121,7 @@ export const createPost = async (req: Request, res: Response) => {
          featured,
          suspended,
       });
-      console.log('new post here: => ', newPost);
+
       if (newPost) {
          res.status(201).json({
             success: true,
@@ -292,7 +293,7 @@ export const deletePost = async (
          message: 'Post not found.',
       });
    }
-   console.log(foundPost?.postOwner, postOwner);
+
    if (foundPost?.postOwner === postOwner) {
       return res.status(400).json({
          success: false,
@@ -498,10 +499,6 @@ export const createPostById = async (req: Request, res: Response) => {
 
    const slugTitle = slugify(title, options);
 
-   console.log('slugged title: => ', slugTitle);
-
-   console.log('username user: =>', user);
-
    if (user?.role !== 'Admin') {
       return res.status(401).json({
          success: false,
@@ -526,7 +523,7 @@ export const createPostById = async (req: Request, res: Response) => {
       const result = await cloudinary.uploader.upload(image, {
          folder: 'blog_images',
       });
-      console.log('cloud results: => ', result);
+
       const newPost = await Post.create({
          postOwner,
          role,
@@ -544,7 +541,7 @@ export const createPostById = async (req: Request, res: Response) => {
          featured,
          suspended,
       });
-      console.log('new post here: => ', newPost);
+
       if (newPost) {
          res.status(201).json({
             success: true,
@@ -571,7 +568,7 @@ export const createPostById = async (req: Request, res: Response) => {
          featured,
          suspended,
       });
-      console.log('new post here: => ', newPost);
+
       if (newPost) {
          res.status(201).json({
             success: true,
@@ -657,8 +654,6 @@ export const allPostsWithUserDetails = async (
       });
    }
 
-   console.log('posts: => ', posts);
-
    const postList = await Promise.all(
       posts.map((post) => {
          return User.findOne(
@@ -694,13 +689,15 @@ export const postWithComments = async (req: Request, res: Response) => {
 
    const commentList = await Promise.all(
       (post as any).comments?.map((comment: any) => {
-         return Comment.findById(comment);
+         if (mongoose.isValidObjectId(comment)) {
+            return Comment.findById(comment);
+         }
       }),
    );
 
    if (commentList) {
       const sortedComments = commentList?.sort(
-         (a, b) => b.createdAt - a.createdAt,
+         (a, b) => b?.createdAt - a?.createdAt,
       );
 
       const commentCount = sortedComments?.length;

@@ -348,7 +348,6 @@ export const verifyUserEmail = async (req: Request, res: Response) => {
    await OtpToken.findByIdAndDelete(otpToken._id);
    //save the user verification status
    const verifiedUser = await user.save();
-   console.log('verified user: ', verifiedUser);
 
    //sending verification success mail
    mailSending().sendMail({
@@ -400,7 +399,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
       token: generatedRandomBytes,
    });
 
-   const passwordResetLink = `http://localhost:3000/auth/resetpassword?token=${generatedRandomBytes}&id=${user._id}`;
+   const passwordResetLink = `https://milesblog.vercel.app/auth/resetpassword?token=${generatedRandomBytes}&id=${user._id}`;
 
    await newResetToken.save();
    await user.save();

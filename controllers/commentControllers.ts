@@ -325,14 +325,14 @@ export const commentWithReplies = async (req: Request, res: Response) => {
    const replyList = await Promise.all(
       (comment as any).replies?.map((reply: any) => {
          if (reply) {
-            return Reply.findById(reply);
+            return Reply.findById(reply).sort({ createdAt: -1 });
          }
       }),
    );
 
    if (replyList) {
       const sortedReplies = replyList?.sort(
-         (a, b) => b.createdAt - a.createdAt,
+         (a, b) => b?.createdAt - a?.createdAt,
       );
       return res.status(200).json({
          success: true,

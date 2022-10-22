@@ -12,7 +12,6 @@ export const errorHandler = (
       `${error.name}: ${error.message}\t${req.method}\t${req.url}\t${req.headers.origin}`,
       'errorLog.log',
    );
-   console.log(error.stack);
 
    const status = res.statusCode ? res.statusCode : 500;
 

@@ -18,9 +18,7 @@ export const logEvents = async (message: any, logFileName: string) => {
          path.join(__dirname, '..', 'logs', logFileName),
          logItem,
       );
-   } catch (error) {
-      console.log(error);
-   }
+   } catch (error) {}
 };
 
 //the middleware function
