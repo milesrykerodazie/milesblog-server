@@ -13,7 +13,6 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 //routes import
-import rootRoute from './routes/root';
 import authRoute from './routes/authRoute';
 import usersRoute from './routes/usersRoute';
 import postRoute from './routes/postRoute';
@@ -36,10 +35,14 @@ app.use(morgan('common'));
 app.use(helmet());
 
 //serve static files
-app.use('/', express.static(path.join(__dirname, '/public')));
+app.use('/', express.static(path.join(__dirname)));
+
+app.get('/', (req, res) => {
+   res.sendFile(path.join(__dirname, '/views', '/index.html'));
+});
 
 //api routes start here
-app.use('/', rootRoute);
+
 app.use('/milesapi', authRoute);
 app.use('/milesapi', usersRoute);
 app.use('/milesapi', postRoute);
