@@ -6,10 +6,10 @@
    "author": "Miles Ryker Odazie",
    "license": "MIT",
    "scripts": {
-      "start": "node ./dist/index.js",
-      "build": "tsc -p .",
-      "dev": "concurrently \"npx tsc --watch\" \"nodemon -q index.ts\"",
-      "build-tail": "NODE_ENV=production npx tailwindcss build -i public/styles/tailwind.css -o public/styles/style.css --watch"
+      "start": " node ./dist/index.js",
+      "build": "concurrently \"tsc -p .\" \"npx tailwindcss build -i public/styles/tailwind.css -o public/styles/style.css\"",
+      "dev": "concurrently \"npx tsc --watch\" \"nodemon -q index.ts\" \"npx tailwindcss build -i public/styles/tailwind.css -o public/styles/style.css\"",
+      "build-tail": "npx tailwindcss build -i public/styles/tailwind.css -o public/styles/style.css --watch"
    },
    "dependencies": {
       "bcryptjs": "^2.4.3",
