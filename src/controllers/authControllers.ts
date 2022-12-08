@@ -495,7 +495,7 @@ export const requestVerification = async (req: Request, res: Response) => {
    if (userCheck) {
       return res.status(409).json({
          success: false,
-         message: 'User still has a valid verification token.',
+         message: 'User still have a valid verification token.',
       });
    }
 
