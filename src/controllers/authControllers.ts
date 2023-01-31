@@ -1,4 +1,4 @@
-import { Request, response, Response } from 'express';
+import {Request, response, Response} from 'express';
 import User from '../models/userModel';
 import {
    emailVerificationTemplate,
@@ -11,7 +11,7 @@ import {
 import OtpToken from '../models/otpTokenModel';
 import ResetPassword from '../models/resetPasswordTokenModel';
 import jwt from 'jsonwebtoken';
-import { createRandomBytes } from '../utils/helper';
+import {createRandomBytes} from '../utils/helper';
 import cloudinary from '../utils/cloudinary';
 
 const access_secret = process.env.ACCESS_TOKEN_SECRET as string;
@@ -49,9 +49,9 @@ export const registerUser = async (
    }
 
    //check for duplicate username and email and ignoring case sensitivity
-   const duplicateEmail = await User.findOne({ email }).lean().exec();
-   const duplicateUsername = await User.findOne({ username })
-      .collation({ locale: 'en', strength: 2 })
+   const duplicateEmail = await User.findOne({email}).lean().exec();
+   const duplicateUsername = await User.findOne({username})
+      .collation({locale: 'en', strength: 2})
       .lean()
       .exec();
 
@@ -177,7 +177,7 @@ export const loginUser = async (
    req: Request,
    res: Response,
 ): Promise<Response | void> => {
-   const { email, password }: { email: string; password: string } = req.body;
+   const {email, password}: {email: string; password: string} = req.body;
 
    if (!email || !password) {
       return res.status(400).json({
@@ -186,7 +186,7 @@ export const loginUser = async (
       });
    }
 
-   const userFound = await User.findOne({ email }).exec();
+   const userFound = await User.findOne({email}).exec();
 
    if (!userFound || !userFound.active) {
       return res.status(401).json({
@@ -211,11 +211,11 @@ export const loginUser = async (
          },
       },
       access_secret,
-      { expiresIn: expire_access },
+      {expiresIn: expire_access},
    );
 
    const refreshToken = jwt.sign(
-      { username: userFound.username },
+      {username: userFound.username},
       refresh_secret,
       {
          expiresIn: expire_refresh,
@@ -241,20 +241,18 @@ export const refreshToken = async (req: Request, res: Response) => {
    const cookies = req.cookies;
 
    if (!cookies?.astkn)
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
+      return res.status(401).json({success: false, message: 'Unauthorized'});
 
    const refreshToken = cookies?.astkn;
 
    //verifying the token
    jwt.verify(refreshToken, refresh_secret, async (err: any, decoded: any) => {
       if (err) {
-         return res.status(403).json({ success: false, message: 'Forbidden' });
+         return res.status(403).json({success: false, message: 'Forbidden'});
       }
-      const userFound = await User.findOne({ username: decoded.username });
+      const userFound = await User.findOne({username: decoded.username});
       if (!userFound)
-         return res
-            .status(401)
-            .json({ success: false, message: 'Unauthorized' });
+         return res.status(401).json({success: false, message: 'Unauthorized'});
 
       //refreshing the access token to get a new one
       const accessToken = jwt.sign(
@@ -265,7 +263,7 @@ export const refreshToken = async (req: Request, res: Response) => {
             },
          },
          access_secret,
-         { expiresIn: expire_access },
+         {expiresIn: expire_access},
       );
       //new access token
       res.json({
@@ -293,7 +291,7 @@ export const logoutUser = async (req: Request, res: Response) => {
 //verify user email
 
 export const verifyUserEmail = async (req: Request, res: Response) => {
-   const { username, otp }: { username: string; otp: string } = req.body;
+   const {username, otp}: {username: string; otp: string} = req.body;
 
    //checking empty entries
    if (!username.trim() || !otp.trim()) {
@@ -303,7 +301,7 @@ export const verifyUserEmail = async (req: Request, res: Response) => {
       });
    }
 
-   const user = await User.findOne({ username: username });
+   const user = await User.findOne({username: username});
    if (!user) {
       return res.status(404).json({
          success: false,
@@ -364,7 +362,7 @@ export const verifyUserEmail = async (req: Request, res: Response) => {
 };
 
 export const forgotPassword = async (req: Request, res: Response) => {
-   const { email }: { email: string } = req.body;
+   const {email}: {email: string} = req.body;
 
    if (!email.trim())
       return res.status(400).json({
@@ -373,7 +371,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
 
    //find if there is a user with that email
-   const user = await User.findOne({ email: email }).exec();
+   const user = await User.findOne({email: email}).exec();
    if (!user || !user.active)
       return res.status(401).json({
          success: false,
@@ -419,11 +417,11 @@ export const forgotPassword = async (req: Request, res: Response) => {
 };
 
 export const resetPassword = async (req: Request, res: Response) => {
-   const { password }: { password: string } = req.body;
+   const {password}: {password: string} = req.body;
    if (!password.trim())
       return res
          .status(400)
-         .json({ success: false, message: 'Password is required.' });
+         .json({success: false, message: 'Password is required.'});
    // @ts-ignore
    const user = await User.findById(req?.user?._id);
    if (!user)
@@ -445,7 +443,7 @@ export const resetPassword = async (req: Request, res: Response) => {
    await user.save();
 
    // deleting the reset token from the database
-   await ResetPassword.findOneAndDelete({ userIdentity: user._id });
+   await ResetPassword.findOneAndDelete({userIdentity: user._id});
 
    //sending a success reset mail
    mailSending().sendMail({
@@ -470,10 +468,10 @@ export const verifyResetToken = async (req: Request, res: Response) => {
 
 //request verification
 export const requestVerification = async (req: Request, res: Response) => {
-   const { username } = req.body;
+   const {username} = req.body;
 
    // getting user details from database
-   const user = await User.findOne({ username: username });
+   const user = await User.findOne({username: username});
    if (!user) {
       return res.status(404).json({
          success: false,
@@ -495,7 +493,7 @@ export const requestVerification = async (req: Request, res: Response) => {
    if (userCheck) {
       return res.status(409).json({
          success: false,
-         message: 'User still have a valid verification token.',
+         message: 'User still has a valid verification token.',
       });
    }
 
